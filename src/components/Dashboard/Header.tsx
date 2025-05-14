@@ -1,26 +1,35 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 
 const Header = () => {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Project Dashboard</h1>
-        <p className="text-muted-foreground">
-          Manage your projects and logistics
-        </p>
+    <header className="pb-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Project Management</h1>
+          <p className="text-muted-foreground">
+            A dashboard for project and logistics management
+          </p>
+        </div>
+        
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <Link to="/" className={navigationMenuTriggerStyle()}>
+                Dashboard
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link to="/projects" className={navigationMenuTriggerStyle()}>
+                Projects
+              </Link>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </span>
-      </div>
-    </div>
+    </header>
   );
 };
 
