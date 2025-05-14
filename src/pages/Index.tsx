@@ -3,19 +3,19 @@ import React from "react";
 import {
   DashboardLayout,
   LogisticsTimeline,
-  ProjectCarousel
+  ActiveProjectsList
 } from "../components/Dashboard";
 import { logisticsEvents, projects } from "../data/sampleData";
 
 const Index = () => {
   return (
     <DashboardLayout>
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Logistics Timeline Section */}
         <LogisticsTimeline events={logisticsEvents} />
         
-        {/* Project Carousel */}
-        <ProjectCarousel projects={projects} />
+        {/* Active Projects List */}
+        <ActiveProjectsList projects={projects} />
       </div>
     </DashboardLayout>
   );

@@ -98,54 +98,81 @@ export const projects = [
     id: "PRJ-2024-001",
     name: "City Center Office Building",
     status: "active" as const,
-    progress: 35
+    progress: 35,
+    documentationDone: false,
+    materialsOrdered: true,
+    materialsReceived: false
   },
   {
     id: "PRJ-2024-002",
     name: "Metro Station Renovation",
     status: "active" as const,
-    progress: 68
+    progress: 68,
+    documentationDone: true,
+    materialsOrdered: true,
+    materialsReceived: false
   },
   {
     id: "PRJ-2024-003",
     name: "Riverside Apartments",
     status: "active" as const,
-    progress: 12
+    progress: 12,
+    documentationDone: false,
+    materialsOrdered: false,
+    materialsReceived: false
   },
   {
     id: "PRJ-2024-004",
     name: "Tech Park Phase II",
     status: "active" as const,
-    progress: 89
+    progress: 89,
+    documentationDone: true,
+    materialsOrdered: true,
+    materialsReceived: true
   },
   {
     id: "PRJ-2024-005",
     name: "Harbor View Hotel",
     status: "active" as const,
-    progress: 24
+    progress: 24,
+    documentationDone: true,
+    materialsOrdered: false,
+    materialsReceived: false
   },
   {
     id: "PRJ-2024-006",
     name: "Green Valley Residential",
     status: "active" as const,
-    progress: 56
+    progress: 56,
+    documentationDone: true,
+    materialsOrdered: true,
+    materialsReceived: true
   },
   {
     id: "PRJ-2024-007",
     name: "Community Health Center",
     status: "active" as const,
-    progress: 42
+    progress: 42,
+    documentationDone: false,
+    materialsOrdered: true,
+    materialsReceived: false
   },
   {
     id: "PRJ-2024-008",
     name: "Sports Complex Extension",
     status: "active" as const,
-    progress: 18
+    progress: 18,
+    documentationDone: false,
+    materialsOrdered: false,
+    materialsReceived: false
   },
   {
     id: "PRJ-2024-009",
     name: "University Science Building",
     status: "active" as const,
-    progress: 75
+    progress: 75,
+    documentationDone: true,
+    materialsOrdered: true,
+    materialsReceived: false
   }
 ];
