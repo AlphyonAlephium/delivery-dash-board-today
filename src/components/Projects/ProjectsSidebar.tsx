@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Folder, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface ProjectsSidebarProps {
   projects: any[];
@@ -45,16 +46,30 @@ const ProjectsSidebar = ({
               <div
                 key={project.id}
                 className={cn(
-                  "flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-accent transition-colors relative group",
+                  "p-2 rounded-md cursor-pointer hover:bg-accent transition-colors relative group",
                   activeProject?.id === project.id ? "bg-accent" : ""
                 )}
               >
-                <div className="flex-1 flex items-center gap-2" onClick={() => onSelectProject(project)}>
+                <div className="flex items-center gap-2" onClick={() => onSelectProject(project)}>
                   <Folder className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm truncate">{project.name}</span>
+                  <span className="text-sm truncate flex-1">{project.name}</span>
+                  
+                  {onDeleteProject && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteProject(project);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-accent-foreground/10"
+                      aria-label={`Delete ${project.name}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </button>
+                  )}
                 </div>
                 
-                <div className="flex items-center gap-1 ml-auto">
+                {/* Status indicators row - now below the project name */}
+                <div className="flex items-center gap-1 mt-2 justify-center">
                   {statusList.map((status, index) => (
                     <span 
                       key={index}
@@ -65,19 +80,6 @@ const ProjectsSidebar = ({
                     />
                   ))}
                 </div>
-                
-                {onDeleteProject && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteProject(project);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-1 rounded-md hover:bg-accent-foreground/10"
-                    aria-label={`Delete ${project.name}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </button>
-                )}
               </div>
             );
           })}
