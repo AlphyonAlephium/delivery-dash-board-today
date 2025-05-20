@@ -12,6 +12,7 @@ import { projects, logisticsEvents } from "@/data/sampleData";
 import { toast } from "@/components/ui/use-toast";
 import ProjectsSidebar from "./ProjectsSidebar";
 import ProjectCriteria from "./ProjectCriteria";
+import DeliveriesTimeline from "./DeliveriesTimeline";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const ProjectsManagement = () => {
@@ -107,10 +108,6 @@ const ProjectsManagement = () => {
     setSelectedProject(updatedProject);
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString();
-  };
-
   return (
     <Card className="w-full">
       <CardHeader>
@@ -118,137 +115,98 @@ const ProjectsManagement = () => {
         <CardDescription>Manage all your projects and deliveries in one place</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="projects" className="w-full" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="projects" className="pt-4">
-            <div className="flex justify-end mb-4">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setEditingProject(null)}>
-                    <Plus className="mr-2" />
-                    Add New Project
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px]">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingProject ? `Edit Project: ${editingProject.name}` : 'Create New Project'}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <ProjectForm 
-                    initialData={editingProject} 
-                    onSave={handleSaveProject} 
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+        <div className="flex justify-end mb-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button onClick={() => setEditingProject(null)}>
+                <Plus className="mr-2" />
+                Add New Project
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingProject ? `Edit Project: ${editingProject.name}` : 'Create New Project'}
+                </DialogTitle>
+              </DialogHeader>
+              <ProjectForm 
+                initialData={editingProject} 
+                onSave={handleSaveProject} 
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
+          <div className="space-y-6">
+            <ProjectsSidebar 
+              projects={activeProjects} 
+              activeProject={selectedProject} 
+              onSelectProject={setSelectedProject}
+              onDeleteProject={handleDeleteProject}
+            />
             
-            <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
-              <ProjectsSidebar 
-                projects={activeProjects} 
-                activeProject={selectedProject} 
-                onSelectProject={setSelectedProject}
-                onDeleteProject={handleDeleteProject}
-              />
-              <ProjectCriteria 
-                project={selectedProject} 
-                onUpdateProject={handleUpdateProject} 
-              />
-            </div>
+            {/* Add deliveries timeline below the projects */}
+            <DeliveriesTimeline 
+              deliveries={deliveries} 
+              projects={activeProjects}
+              onAddDelivery={() => {
+                setEditingDelivery(null);
+                document.getElementById("add-delivery-dialog-trigger")?.click();
+              }}
+              onEditDelivery={(delivery) => {
+                setEditingDelivery(delivery);
+                document.getElementById("add-delivery-dialog-trigger")?.click();
+              }}
+            />
+          </div>
+          
+          <ProjectCriteria 
+            project={selectedProject} 
+            onUpdateProject={handleUpdateProject} 
+          />
+        </div>
 
-            {/* Delete Project Confirmation Dialog */}
-            <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete the project "{projectToDelete?.name}" and all associated deliveries.
-                    This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={confirmDeleteProject}>Delete</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </TabsContent>
-          
-          <TabsContent value="deliveries">
-            <div className="flex justify-end mb-4">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setEditingDelivery(null)}>
-                    <Plus className="mr-2" />
-                    Schedule New Delivery/Pickup
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px]">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingDelivery ? 'Edit Delivery/Pickup' : 'Schedule New Delivery/Pickup'}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <DeliveryForm 
-                    initialData={editingDelivery}
-                    projects={activeProjects}
-                    onSave={handleSaveDelivery}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-            
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {deliveries.map((delivery, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{formatDate(delivery.date)}</TableCell>
-                      <TableCell>{delivery.time}</TableCell>
-                      <TableCell className="capitalize">{delivery.type}</TableCell>
-                      <TableCell>{delivery.projectName}</TableCell>
-                      <TableCell>{delivery.location}</TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => setEditingDelivery(delivery)}>
-                              <Pencil className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[600px]">
-                            <DialogHeader>
-                              <DialogTitle>Edit {delivery.type}</DialogTitle>
-                            </DialogHeader>
-                            <DeliveryForm 
-                              initialData={delivery}
-                              projects={activeProjects}
-                              onSave={handleSaveDelivery}
-                            />
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
-        </Tabs>
+        {/* Hidden delivery dialog trigger */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button 
+              id="add-delivery-dialog-trigger" 
+              className="hidden"
+            >
+              Add Delivery
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingDelivery ? 'Edit Delivery/Pickup' : 'Schedule New Delivery/Pickup'}
+              </DialogTitle>
+            </DialogHeader>
+            <DeliveryForm 
+              initialData={editingDelivery}
+              projects={activeProjects}
+              onSave={handleSaveDelivery}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Project Confirmation Dialog */}
+        <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the project "{projectToDelete?.name}" and all associated deliveries.
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteProject}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
