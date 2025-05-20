@@ -1,7 +1,8 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, Pencil } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -17,7 +18,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const ProjectsManagement = () => {
   const [activeProjects, setActiveProjects] = useState(projects);
-  const [deliveries, setDeliveries] = useState(logisticsEvents);
+  const [deliveries, setDeliveries] = useState(logisticsEvents.map(event => ({
+    ...event,
+    projectsInvolved: [],
+    projectsInvolvedNames: []
+  })));
   const [editingProject, setEditingProject] = useState(null);
   const [editingDelivery, setEditingDelivery] = useState(null);
   const [activeTab, setActiveTab] = useState("projects");
@@ -59,16 +64,30 @@ const ProjectsManagement = () => {
       setDeliveries(deliveries.map((d, index) => 
         index === deliveries.indexOf(editingDelivery) ? deliveryData : d
       ));
+      
+      // Show involved projects in toast
+      const additionalProjects = deliveryData.projectsInvolved?.length || 0;
+      const projectDescription = additionalProjects > 0 
+        ? ` and ${additionalProjects} additional project(s)` 
+        : '';
+        
       toast({
         title: "Delivery updated",
-        description: `Delivery for ${deliveryData.projectName} has been updated.`
+        description: `Delivery for ${deliveryData.projectName}${projectDescription} has been updated.`
       });
     } else {
       // Add new delivery
       setDeliveries([...deliveries, deliveryData]);
+      
+      // Show involved projects in toast
+      const additionalProjects = deliveryData.projectsInvolved?.length || 0;
+      const projectDescription = additionalProjects > 0 
+        ? ` and ${additionalProjects} additional project(s)` 
+        : '';
+        
       toast({
         title: "Delivery added",
-        description: `New delivery for ${deliveryData.projectName} has been scheduled.`
+        description: `New delivery for ${deliveryData.projectName}${projectDescription} has been scheduled.`
       });
     }
     setEditingDelivery(null);
@@ -89,8 +108,20 @@ const ProjectsManagement = () => {
       setSelectedProject(null);
     }
     
-    // Also filter out any deliveries associated with this project
-    const updatedDeliveries = deliveries.filter(d => d.projectNumber !== projectToDelete.id);
+    // Update deliveries to remove this project from primary and involved lists
+    const updatedDeliveries = deliveries.filter(d => d.projectNumber !== projectToDelete.id)
+      .map(d => ({
+        ...d,
+        projectsInvolved: d.projectsInvolved ? 
+          d.projectsInvolved.filter(id => id !== projectToDelete.id) : 
+          [],
+        projectsInvolvedNames: d.projectsInvolvedNames ? 
+          d.projectsInvolvedNames.filter((_, idx) => 
+            d.projectsInvolved[idx] !== projectToDelete.id
+          ) : 
+          []
+      }));
+    
     setDeliveries(updatedDeliveries);
     
     toast({

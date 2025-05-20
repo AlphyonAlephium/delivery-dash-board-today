@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Package, Truck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type LogisticsEventProps = {
   type: "pickup" | "delivery";
@@ -12,6 +13,8 @@ type LogisticsEventProps = {
   projectName: string;
   location?: string;
   time?: string;
+  projectsInvolved?: string[];
+  projectsInvolvedNames?: string[];
 };
 
 const LogisticsEvent = ({ 
@@ -20,7 +23,9 @@ const LogisticsEvent = ({
   projectNumber, 
   projectName, 
   location, 
-  time 
+  time,
+  projectsInvolved = [],
+  projectsInvolvedNames = []
 }: LogisticsEventProps) => {
   const formattedDate = date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -29,6 +34,7 @@ const LogisticsEvent = ({
   });
   
   const isToday = new Date().toDateString() === date.toDateString();
+  const hasMultipleProjects = projectsInvolved && projectsInvolved.length > 0;
 
   return (
     <Card className={cn(
@@ -50,6 +56,31 @@ const LogisticsEvent = ({
                 {projectNumber}
               </Badge>
               <h3 className="font-medium text-sm truncate">{projectName}</h3>
+              
+              {/* Display additional projects involved */}
+              {hasMultipleProjects && (
+                <div className="mt-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="secondary" className="text-xs">
+                          +{projectsInvolved.length} more project{projectsInvolved.length > 1 ? 's' : ''}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="text-xs p-1">
+                          <p className="font-medium mb-1">Additional projects:</p>
+                          <ul className="list-disc pl-4">
+                            {projectsInvolvedNames.map((name, idx) => (
+                              <li key={idx}>{name}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className={cn(

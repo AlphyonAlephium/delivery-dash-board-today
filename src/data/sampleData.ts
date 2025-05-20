@@ -24,7 +24,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-001",
     projectName: "City Center Office Building",
     location: "123 Main St, Downtown",
-    time: "09:30 AM"
+    time: "09:30 AM",
+    projectsInvolved: ["PRJ-2024-002", "PRJ-2024-003"],
+    projectsInvolvedNames: ["Metro Station Renovation", "Riverside Apartments"]
   },
   {
     type: "pickup" as const,
@@ -32,7 +34,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-003",
     projectName: "Riverside Apartments",
     location: "456 River Rd, Eastside",
-    time: "02:15 PM"
+    time: "02:15 PM",
+    projectsInvolved: ["PRJ-2024-005"],
+    projectsInvolvedNames: ["Harbor View Hotel"]
   },
   {
     type: "delivery" as const,
@@ -40,7 +44,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-002",
     projectName: "Metro Station Renovation",
     location: "789 Transit Way, Downtown",
-    time: "10:00 AM"
+    time: "10:00 AM",
+    projectsInvolved: [],
+    projectsInvolvedNames: []
   },
   {
     type: "pickup" as const,
@@ -48,7 +54,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-005",
     projectName: "Harbor View Hotel",
     location: "321 Harbor Dr, Waterfront",
-    time: "08:45 AM"
+    time: "08:45 AM",
+    projectsInvolved: ["PRJ-2024-007", "PRJ-2024-009"],
+    projectsInvolvedNames: ["Community Health Center", "University Science Building"]
   },
   {
     type: "delivery" as const,
@@ -56,7 +64,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-007",
     projectName: "Community Health Center",
     location: "555 Wellness Ave, Northside",
-    time: "11:30 AM"
+    time: "11:30 AM",
+    projectsInvolved: [],
+    projectsInvolvedNames: []
   },
   {
     type: "delivery" as const,
@@ -64,7 +74,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-004",
     projectName: "Tech Park Phase II",
     location: "888 Innovation Blvd, Tech District",
-    time: "09:00 AM"
+    time: "09:00 AM",
+    projectsInvolved: ["PRJ-2024-008"],
+    projectsInvolvedNames: ["Sports Complex Extension"]
   },
   {
     type: "pickup" as const,
@@ -72,7 +84,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-008",
     projectName: "Sports Complex Extension",
     location: "777 Athletic Dr, Westside",
-    time: "03:30 PM"
+    time: "03:30 PM",
+    projectsInvolved: [],
+    projectsInvolvedNames: []
   },
   {
     type: "delivery" as const,
@@ -80,7 +94,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-009",
     projectName: "University Science Building",
     location: "101 Campus Dr, University District",
-    time: "10:45 AM"
+    time: "10:45 AM",
+    projectsInvolved: ["PRJ-2024-006"],
+    projectsInvolvedNames: ["Green Valley Residential"]
   },
   {
     type: "pickup" as const,
@@ -88,7 +104,9 @@ export const logisticsEvents = [
     projectNumber: "PRJ-2024-006",
     projectName: "Green Valley Residential",
     location: "222 Valley Rd, Southside",
-    time: "01:15 PM"
+    time: "01:15 PM",
+    projectsInvolved: [],
+    projectsInvolvedNames: []
   }
 ];
 

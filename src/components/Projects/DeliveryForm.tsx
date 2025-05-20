@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DeliveryFormProps {
   initialData?: {
@@ -15,6 +17,7 @@ interface DeliveryFormProps {
     projectNumber: string;
     projectName: string;
     location: string;
+    projectsInvolved?: string[]; // New field for multiple projects
   } | null;
   projects: any[];
   onSave: (data: any) => void;
@@ -27,7 +30,8 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
     type: "delivery",
     projectNumber: "",
     projectName: "",
-    location: ""
+    location: "",
+    projectsInvolved: [] // Default to empty array
   };
 
   const form = useForm({
@@ -35,12 +39,14 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
       ...defaultValues,
       date: initialData?.date ? initialData.date : new Date(),
       projectId: initialData?.projectNumber || "",
+      projectsInvolved: initialData?.projectsInvolved || []
     }
   });
 
   const watchProjectId = form.watch("projectId");
+  const watchProjectsInvolved = form.watch("projectsInvolved");
   
-  // Update project name when project ID changes
+  // Update project name when primary project ID changes
   React.useEffect(() => {
     if (watchProjectId) {
       const selectedProject = projects.find(p => p.id === watchProjectId);
@@ -52,6 +58,12 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
   }, [watchProjectId, projects, form]);
 
   const handleSubmit = (data) => {
+    // Get the names of all involved projects for display
+    const involvedProjectNames = data.projectsInvolved.map(id => {
+      const project = projects.find(p => p.id === id);
+      return project ? project.name : '';
+    });
+
     // Format the data for saving
     const formattedData = {
       date: new Date(data.date),
@@ -59,7 +71,9 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
       type: data.type,
       projectNumber: data.projectNumber,
       projectName: data.projectName,
-      location: data.location
+      location: data.location,
+      projectsInvolved: data.projectsInvolved,
+      projectsInvolvedNames: involvedProjectNames
     };
     
     onSave(formattedData);
@@ -134,14 +148,14 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
           name="projectId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project</FormLabel>
+              <FormLabel>Primary Project</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a project" />
+                    <SelectValue placeholder="Select a primary project" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -152,6 +166,49 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Multiple Projects Selection */}
+        <FormField
+          control={form.control}
+          name="projectsInvolved"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional Projects Involved</FormLabel>
+              <FormControl>
+                <div className="border rounded-md p-2">
+                  <ScrollArea className="h-[150px]">
+                    <div className="space-y-2">
+                      {projects.filter(project => project.id !== watchProjectId).map((project) => (
+                        <div key={project.id} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`project-${project.id}`} 
+                            checked={field.value.includes(project.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                field.onChange([...field.value, project.id]);
+                              } else {
+                                field.onChange(field.value.filter(id => id !== project.id));
+                              }
+                            }}
+                          />
+                          <label htmlFor={`project-${project.id}`} className="text-sm">
+                            {project.id} - {project.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </FormControl>
+              {watchProjectsInvolved?.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  {watchProjectsInvolved.length} additional project(s) selected
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )}
