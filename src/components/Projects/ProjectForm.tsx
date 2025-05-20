@@ -9,20 +9,23 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 interface ProjectFormProps {
   initialData?: {
     name: string;
-    progress: number;
-    documentationDone: boolean;
-    materialsOrdered: boolean;
-    materialsReceived: boolean;
-    designApproved: boolean;
-    qualityChecked: boolean;
-    clientApproved: boolean;
+    progress?: number;
+    documentationDone?: boolean;
+    materialsOrdered?: boolean;
+    materialsReceived?: boolean;
+    designApproved?: boolean;
+    qualityChecked?: boolean;
+    clientApproved?: boolean;
+    description?: string;
   } | null;
   onSave: (data: any) => void;
+  isSubmitting?: boolean;
 }
 
-const ProjectForm = ({ initialData, onSave }: ProjectFormProps) => {
+const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormProps) => {
   const defaultValues = initialData || {
     name: "",
+    description: "",
     progress: 0,
     documentationDone: false,
     materialsOrdered: false,
@@ -51,6 +54,20 @@ const ProjectForm = ({ initialData, onSave }: ProjectFormProps) => {
               <FormLabel>Project Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter project name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter project description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -178,7 +195,9 @@ const ProjectForm = ({ initialData, onSave }: ProjectFormProps) => {
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="submit">Save Project</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Project"}
+          </Button>
         </div>
       </form>
     </Form>
