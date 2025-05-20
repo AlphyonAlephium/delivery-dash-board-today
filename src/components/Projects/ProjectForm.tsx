@@ -13,6 +13,9 @@ interface ProjectFormProps {
     documentationDone: boolean;
     materialsOrdered: boolean;
     materialsReceived: boolean;
+    designApproved: boolean;
+    qualityChecked: boolean;
+    clientApproved: boolean;
   } | null;
   onSave: (data: any) => void;
 }
@@ -24,6 +27,9 @@ const ProjectForm = ({ initialData, onSave }: ProjectFormProps) => {
     documentationDone: false,
     materialsOrdered: false,
     materialsReceived: false,
+    designApproved: false,
+    qualityChecked: false,
+    clientApproved: false,
   };
 
   const form = useForm({
@@ -118,6 +124,54 @@ const ProjectForm = ({ initialData, onSave }: ProjectFormProps) => {
                   />
                 </FormControl>
                 <FormLabel className="font-normal">Materials Received</FormLabel>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="designApproved"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox 
+                    checked={field.value} 
+                    onCheckedChange={field.onChange} 
+                  />
+                </FormControl>
+                <FormLabel className="font-normal">Design Approved</FormLabel>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="qualityChecked"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox 
+                    checked={field.value} 
+                    onCheckedChange={field.onChange} 
+                  />
+                </FormControl>
+                <FormLabel className="font-normal">Quality Checked</FormLabel>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="clientApproved"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox 
+                    checked={field.value} 
+                    onCheckedChange={field.onChange} 
+                  />
+                </FormControl>
+                <FormLabel className="font-normal">Client Approved</FormLabel>
               </FormItem>
             )}
           />

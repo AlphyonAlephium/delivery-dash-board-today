@@ -10,12 +10,16 @@ import ProjectForm from "./ProjectForm";
 import DeliveryForm from "./DeliveryForm";
 import { projects, logisticsEvents } from "@/data/sampleData";
 import { toast } from "@/components/ui/use-toast";
+import ProjectsSidebar from "./ProjectsSidebar";
+import ProjectCriteria from "./ProjectCriteria";
 
 const ProjectsManagement = () => {
   const [activeProjects, setActiveProjects] = useState(projects);
   const [deliveries, setDeliveries] = useState(logisticsEvents);
   const [editingProject, setEditingProject] = useState(null);
   const [editingDelivery, setEditingDelivery] = useState(null);
+  const [activeTab, setActiveTab] = useState("projects");
+  const [selectedProject, setSelectedProject] = useState(null);
   
   const handleSaveProject = (projectData) => {
     if (editingProject) {
@@ -23,6 +27,12 @@ const ProjectsManagement = () => {
       setActiveProjects(activeProjects.map(p => 
         p.id === editingProject.id ? { ...projectData, id: editingProject.id } : p
       ));
+      
+      // Update selected project if it's the one being edited
+      if (selectedProject && selectedProject.id === editingProject.id) {
+        setSelectedProject({ ...projectData, id: editingProject.id });
+      }
+      
       toast({
         title: "Project updated",
         description: `${projectData.name} has been successfully updated.`
@@ -30,7 +40,8 @@ const ProjectsManagement = () => {
     } else {
       // Add new project
       const newId = `PRJ-${new Date().getFullYear()}-${(activeProjects.length + 1).toString().padStart(3, '0')}`;
-      setActiveProjects([...activeProjects, { ...projectData, id: newId, status: "active" }]);
+      const newProject = { ...projectData, id: newId, status: "active" };
+      setActiveProjects([...activeProjects, newProject]);
       toast({
         title: "Project added",
         description: `${projectData.name} has been successfully created.`
@@ -60,6 +71,13 @@ const ProjectsManagement = () => {
     setEditingDelivery(null);
   };
 
+  const handleUpdateProject = (updatedProject) => {
+    setActiveProjects(activeProjects.map(p => 
+      p.id === updatedProject.id ? updatedProject : p
+    ));
+    setSelectedProject(updatedProject);
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString();
   };
@@ -71,13 +89,13 @@ const ProjectsManagement = () => {
         <CardDescription>Manage all your projects and deliveries in one place</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="projects" className="w-full">
+        <Tabs defaultValue="projects" className="w-full" value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="projects">
+          <TabsContent value="projects" className="pt-4">
             <div className="flex justify-end mb-4">
               <Dialog>
                 <DialogTrigger asChild>
@@ -100,51 +118,16 @@ const ProjectsManagement = () => {
               </Dialog>
             </div>
             
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project ID</TableHead>
-                    <TableHead>Project Name</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Documentation</TableHead>
-                    <TableHead>Materials Ordered</TableHead>
-                    <TableHead>Materials Received</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeProjects.map((project) => (
-                    <TableRow key={project.id}>
-                      <TableCell>{project.id}</TableCell>
-                      <TableCell>{project.name}</TableCell>
-                      <TableCell>{project.progress}%</TableCell>
-                      <TableCell>{project.documentationDone ? "Yes" : "No"}</TableCell>
-                      <TableCell>{project.materialsOrdered ? "Yes" : "No"}</TableCell>
-                      <TableCell>{project.materialsReceived ? "Yes" : "No"}</TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => setEditingProject(project)}>
-                              <Pencil className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[600px]">
-                            <DialogHeader>
-                              <DialogTitle>Edit Project: {project.name}</DialogTitle>
-                            </DialogHeader>
-                            <ProjectForm 
-                              initialData={project} 
-                              onSave={handleSaveProject} 
-                            />
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
+              <ProjectsSidebar 
+                projects={activeProjects} 
+                activeProject={selectedProject} 
+                onSelectProject={setSelectedProject} 
+              />
+              <ProjectCriteria 
+                project={selectedProject} 
+                onUpdateProject={handleUpdateProject} 
+              />
             </div>
           </TabsContent>
           
