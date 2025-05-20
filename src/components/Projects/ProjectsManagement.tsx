@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -88,7 +89,7 @@ const ProjectsManagement = () => {
     }
     
     // Also filter out any deliveries associated with this project
-    const updatedDeliveries = deliveries.filter(d => d.projectId !== projectToDelete.id);
+    const updatedDeliveries = deliveries.filter(d => d.projectNumber !== projectToDelete.id);
     setDeliveries(updatedDeliveries);
     
     toast({
