@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import { projects, logisticsEvents } from "@/data/sampleData";
 import { toast } from "@/components/ui/use-toast";
 import ProjectsSidebar from "./ProjectsSidebar";
 import ProjectCriteria from "./ProjectCriteria";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const ProjectsManagement = () => {
   const [activeProjects, setActiveProjects] = useState(projects);
@@ -20,6 +20,7 @@ const ProjectsManagement = () => {
   const [editingDelivery, setEditingDelivery] = useState(null);
   const [activeTab, setActiveTab] = useState("projects");
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectToDelete, setProjectToDelete] = useState(null);
   
   const handleSaveProject = (projectData) => {
     if (editingProject) {
@@ -69,6 +70,33 @@ const ProjectsManagement = () => {
       });
     }
     setEditingDelivery(null);
+  };
+
+  const handleDeleteProject = (project) => {
+    setProjectToDelete(project);
+  };
+  
+  const confirmDeleteProject = () => {
+    if (!projectToDelete) return;
+    
+    const updatedProjects = activeProjects.filter(p => p.id !== projectToDelete.id);
+    setActiveProjects(updatedProjects);
+    
+    // If the deleted project was selected, clear the selection
+    if (selectedProject?.id === projectToDelete.id) {
+      setSelectedProject(null);
+    }
+    
+    // Also filter out any deliveries associated with this project
+    const updatedDeliveries = deliveries.filter(d => d.projectId !== projectToDelete.id);
+    setDeliveries(updatedDeliveries);
+    
+    toast({
+      title: "Project deleted",
+      description: `${projectToDelete.name} has been successfully deleted.`
+    });
+    
+    setProjectToDelete(null);
   };
 
   const handleUpdateProject = (updatedProject) => {
@@ -122,13 +150,31 @@ const ProjectsManagement = () => {
               <ProjectsSidebar 
                 projects={activeProjects} 
                 activeProject={selectedProject} 
-                onSelectProject={setSelectedProject} 
+                onSelectProject={setSelectedProject}
+                onDeleteProject={handleDeleteProject}
               />
               <ProjectCriteria 
                 project={selectedProject} 
                 onUpdateProject={handleUpdateProject} 
               />
             </div>
+
+            {/* Delete Project Confirmation Dialog */}
+            <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete the project "{projectToDelete?.name}" and all associated deliveries.
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmDeleteProject}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </TabsContent>
           
           <TabsContent value="deliveries">
