@@ -13,7 +13,7 @@ interface ProjectCriteriaProps {
 
 const ProjectCriteria = ({ project, onUpdateProject }: ProjectCriteriaProps) => {
   const criteriaItems = [
-    { key: "documentationDone", label: "Documentation Created" },
+    { key: "documentationDone", label: "R1 izveidots" },
     { key: "materialsOrdered", label: "Materials Ordered" },
     { key: "materialsReceived", label: "Materials Received" },
     { key: "designApproved", label: "Design Approved" },
