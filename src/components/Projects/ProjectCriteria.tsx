@@ -9,9 +9,10 @@ import { toast } from "@/components/ui/use-toast";
 interface ProjectCriteriaProps {
   project: any;
   onUpdateProject: (updatedProject: any) => void;
+  isSubmitting?: boolean;
 }
 
-const ProjectCriteria = ({ project, onUpdateProject }: ProjectCriteriaProps) => {
+const ProjectCriteria = ({ project, onUpdateProject, isSubmitting = false }: ProjectCriteriaProps) => {
   const criteriaItems = [
     { key: "documentationDone", label: "R1 izveidots" },
     { key: "materialsOrdered", label: "Materials Ordered" },
@@ -87,13 +88,16 @@ const ProjectCriteria = ({ project, onUpdateProject }: ProjectCriteriaProps) => 
                     onCheckedChange={(checked) =>
                       handleCriteriaChange(item.key, checked)
                     }
+                    disabled={isSubmitting}
                   />
                 </div>
               ))}
             </div>
 
             <div className="mt-8 flex justify-end">
-              <Button>Save Changes</Button>
+              <Button disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </>
         ) : (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -53,7 +54,7 @@ const ProjectsManagement = () => {
   
   // Create project mutation
   const createProjectMutation = useMutation({
-    mutationFn: async (projectData) => {
+    mutationFn: async (projectData: any) => {
       const { data, error } = await supabase
         .from('projects')
         .insert([projectData])
@@ -70,7 +71,7 @@ const ProjectsManagement = () => {
         description: "Your project has been successfully created"
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating project:", error);
       toast({
         title: "Error creating project",
@@ -82,7 +83,7 @@ const ProjectsManagement = () => {
   
   // Update project mutation
   const updateProjectMutation = useMutation({
-    mutationFn: async (projectData) => {
+    mutationFn: async (projectData: any) => {
       const { data, error } = await supabase
         .from('projects')
         .update(projectData)
@@ -93,7 +94,7 @@ const ProjectsManagement = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       
       // Update selected project if it's the one being edited
@@ -106,7 +107,7 @@ const ProjectsManagement = () => {
         description: `${data.name} has been successfully updated.`
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error updating project:", error);
       toast({
         title: "Error updating project",
@@ -118,7 +119,7 @@ const ProjectsManagement = () => {
   
   // Delete project mutation
   const deleteProjectMutation = useMutation({
-    mutationFn: async (projectId) => {
+    mutationFn: async (projectId: string) => {
       const { error } = await supabase
         .from('projects')
         .delete()
@@ -127,7 +128,7 @@ const ProjectsManagement = () => {
       if (error) throw error;
       return projectId;
     },
-    onSuccess: (deletedId) => {
+    onSuccess: (deletedId: string) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       
       // If the deleted project was selected, clear the selection
@@ -142,7 +143,7 @@ const ProjectsManagement = () => {
       
       setProjectToDelete(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error deleting project:", error);
       toast({
         title: "Error deleting project",
@@ -152,7 +153,7 @@ const ProjectsManagement = () => {
     }
   });
 
-  const handleSaveProject = (projectData) => {
+  const handleSaveProject = (projectData: any) => {
     if (editingProject) {
       // Update existing project
       updateProjectMutation.mutate({
@@ -169,7 +170,7 @@ const ProjectsManagement = () => {
     setEditingProject(null);
   };
 
-  const handleSaveDelivery = (deliveryData) => {
+  const handleSaveDelivery = (deliveryData: any) => {
     if (editingDelivery) {
       // Update existing delivery
       setDeliveries(deliveries.map((d, index) => 
@@ -204,7 +205,7 @@ const ProjectsManagement = () => {
     setEditingDelivery(null);
   };
 
-  const handleDeleteProject = (project) => {
+  const handleDeleteProject = (project: any) => {
     setProjectToDelete(project);
   };
   
@@ -213,7 +214,7 @@ const ProjectsManagement = () => {
     deleteProjectMutation.mutate(projectToDelete.id);
   };
 
-  const handleUpdateProject = (updatedProject) => {
+  const handleUpdateProject = (updatedProject: any) => {
     updateProjectMutation.mutate(updatedProject);
   };
 

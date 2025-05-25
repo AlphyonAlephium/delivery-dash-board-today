@@ -11,13 +11,15 @@ interface ProjectsSidebarProps {
   activeProject: any | null;
   onSelectProject: (project: any) => void;
   onDeleteProject?: (project: any) => void;
+  isLoading?: boolean;
 }
 
 const ProjectsSidebar = ({ 
   projects, 
   activeProject, 
   onSelectProject,
-  onDeleteProject
+  onDeleteProject,
+  isLoading = false
 }: ProjectsSidebarProps) => {
   // Helper function to calculate project progress
   const calculateProjectStatus = (project) => {
