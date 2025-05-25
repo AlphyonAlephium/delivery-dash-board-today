@@ -58,26 +58,47 @@ export type Database = {
       }
       projects: {
         Row: {
+          client_approved: boolean | null
           created_at: string
           description: string | null
+          design_approved: boolean | null
+          documentation_done: boolean | null
           id: string
+          materials_ordered: boolean | null
+          materials_received: boolean | null
           name: string
+          progress: number | null
+          quality_checked: boolean | null
           status: string | null
           updated_at: string
         }
         Insert: {
+          client_approved?: boolean | null
           created_at?: string
           description?: string | null
+          design_approved?: boolean | null
+          documentation_done?: boolean | null
           id?: string
+          materials_ordered?: boolean | null
+          materials_received?: boolean | null
           name: string
+          progress?: number | null
+          quality_checked?: boolean | null
           status?: string | null
           updated_at?: string
         }
         Update: {
+          client_approved?: boolean | null
           created_at?: string
           description?: string | null
+          design_approved?: boolean | null
+          documentation_done?: boolean | null
           id?: string
+          materials_ordered?: boolean | null
+          materials_received?: boolean | null
           name?: string
+          progress?: number | null
+          quality_checked?: boolean | null
           status?: string | null
           updated_at?: string
         }

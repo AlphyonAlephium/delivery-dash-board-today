@@ -24,12 +24,12 @@ const ProjectsSidebar = ({
   // Helper function to calculate project progress
   const calculateProjectStatus = (project) => {
     const criteriaItems = [
-      "documentationDone", 
-      "materialsOrdered", 
-      "materialsReceived", 
-      "designApproved", 
-      "qualityChecked", 
-      "clientApproved"
+      "documentation_done", 
+      "materials_ordered", 
+      "materials_received", 
+      "design_approved", 
+      "quality_checked", 
+      "client_approved"
     ];
     
     return criteriaItems.map(item => project[item] === true ? 1 : 0);

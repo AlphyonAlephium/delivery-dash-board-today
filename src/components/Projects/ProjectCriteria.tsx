@@ -14,12 +14,12 @@ interface ProjectCriteriaProps {
 
 const ProjectCriteria = ({ project, onUpdateProject, isSubmitting = false }: ProjectCriteriaProps) => {
   const criteriaItems = [
-    { key: "documentationDone", label: "R1 izveidots" },
-    { key: "materialsOrdered", label: "Materials Ordered" },
-    { key: "materialsReceived", label: "Materials Received" },
-    { key: "designApproved", label: "Design Approved" },
-    { key: "qualityChecked", label: "Quality Checked" },
-    { key: "clientApproved", label: "Client Approved" },
+    { key: "documentation_done", label: "R1 izveidots" },
+    { key: "materials_ordered", label: "Materials Ordered" },
+    { key: "materials_received", label: "Materials Received" },
+    { key: "design_approved", label: "Design Approved" },
+    { key: "quality_checked", label: "Quality Checked" },
+    { key: "client_approved", label: "Client Approved" },
   ];
 
   const handleCriteriaChange = (key: string, checked: boolean) => {

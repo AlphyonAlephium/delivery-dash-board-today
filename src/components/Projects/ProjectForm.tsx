@@ -10,12 +10,12 @@ interface ProjectFormProps {
   initialData?: {
     name: string;
     progress?: number;
-    documentationDone?: boolean;
-    materialsOrdered?: boolean;
-    materialsReceived?: boolean;
-    designApproved?: boolean;
-    qualityChecked?: boolean;
-    clientApproved?: boolean;
+    documentation_done?: boolean;
+    materials_ordered?: boolean;
+    materials_received?: boolean;
+    design_approved?: boolean;
+    quality_checked?: boolean;
+    client_approved?: boolean;
     description?: string;
   } | null;
   onSave: (data: any) => void;
@@ -27,12 +27,12 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
     name: "",
     description: "",
     progress: 0,
-    documentationDone: false,
-    materialsOrdered: false,
-    materialsReceived: false,
-    designApproved: false,
-    qualityChecked: false,
-    clientApproved: false,
+    documentation_done: false,
+    materials_ordered: false,
+    materials_received: false,
+    design_approved: false,
+    quality_checked: false,
+    client_approved: false,
   };
 
   const form = useForm({
@@ -99,7 +99,7 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
-            name="documentationDone"
+            name="documentation_done"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                 <FormControl>
@@ -115,7 +115,7 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
 
           <FormField
             control={form.control}
-            name="materialsOrdered"
+            name="materials_ordered"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                 <FormControl>
@@ -131,7 +131,7 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
 
           <FormField
             control={form.control}
-            name="materialsReceived"
+            name="materials_received"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                 <FormControl>
@@ -147,7 +147,7 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
 
           <FormField
             control={form.control}
-            name="designApproved"
+            name="design_approved"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                 <FormControl>
@@ -163,7 +163,7 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
 
           <FormField
             control={form.control}
-            name="qualityChecked"
+            name="quality_checked"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                 <FormControl>
@@ -179,7 +179,7 @@ const ProjectForm = ({ initialData, onSave, isSubmitting = false }: ProjectFormP
 
           <FormField
             control={form.control}
-            name="clientApproved"
+            name="client_approved"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                 <FormControl>
