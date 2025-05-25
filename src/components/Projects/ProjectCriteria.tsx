@@ -20,6 +20,8 @@ const ProjectCriteria = ({ project, onUpdateProject, isSubmitting = false }: Pro
     { key: "design_approved", label: "Design Approved" },
     { key: "quality_checked", label: "Quality Checked" },
     { key: "client_approved", label: "Client Approved" },
+    { key: "client_approvedd", label: "Client dddd" },
+    
   ];
 
   const handleCriteriaChange = (key: string, checked: boolean) => {
