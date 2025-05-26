@@ -12,6 +12,7 @@ import ProjectsSidebar from "./ProjectsSidebar";
 import ProjectCriteria from "./ProjectCriteria";
 import DeliveriesTimeline from "./DeliveriesTimeline";
 import DeliveriesCarousel from "./DeliveriesCarousel";
+import SmallJobsSection from "./SmallJobsSection";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -282,7 +283,7 @@ const ProjectsManagement = () => {
                 </Dialog>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-[250px_250px_1fr] gap-6">
                 <div className="space-y-6">
                   <ProjectsSidebar 
                     projects={activeProjects} 
@@ -291,6 +292,10 @@ const ProjectsManagement = () => {
                     onDeleteProject={handleDeleteProject}
                     isLoading={isLoading}
                   />
+                </div>
+                
+                <div className="space-y-6">
+                  <SmallJobsSection projects={activeProjects} />
                 </div>
                 
                 <ProjectCriteria 
