@@ -166,7 +166,7 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
 
     createJobMutation.mutate({
       title: newJob.title,
-      order_number: newJob.order_number || undefined
+      order_number: newJob.order_number === "none" ? undefined : newJob.order_number
     });
   };
 
@@ -223,7 +223,7 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                       <SelectValue placeholder="Select order number or leave blank" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No order number</SelectItem>
+                      <SelectItem value="none">No order number</SelectItem>
                       {orderNumbers.map((orderNum) => (
                         <SelectItem key={orderNum} value={orderNum}>
                           {orderNum}
