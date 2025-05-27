@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Folder, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ interface ProjectsSidebarProps {
   activeProject: any | null;
   onSelectProject: (project: any) => void;
   onDeleteProject?: (project: any) => void;
+  onToggleMaterialOrdering?: (project: any) => void;
   isLoading?: boolean;
 }
 
@@ -19,6 +21,7 @@ const ProjectsSidebar = ({
   activeProject, 
   onSelectProject,
   onDeleteProject,
+  onToggleMaterialOrdering,
   isLoading = false
 }: ProjectsSidebarProps) => {
   // Helper function to calculate project progress
@@ -57,6 +60,7 @@ const ProjectsSidebar = ({
             const statusList = calculateProjectStatus(project);
             const completedCount = statusList.filter(Boolean).length;
             const progressPercent = (completedCount / statusList.length) * 100;
+            const isMaterialOrderingActive = project.material_ordering_activated;
             
             return (
               <div
@@ -69,7 +73,14 @@ const ProjectsSidebar = ({
                 )}
               >
                 <div className="flex items-center gap-2" onClick={() => onSelectProject(project)}>
-                  <div className={`h-3 w-3 rounded-full bg-gradient-to-r ${getProjectColor(index)}`}></div>
+                  <div 
+                    className={cn(
+                      "h-3 w-3 rounded-full transition-all duration-300",
+                      isMaterialOrderingActive 
+                        ? "bg-red-500 shadow-lg shadow-red-500/50 animate-pulse" 
+                        : `bg-gradient-to-r ${getProjectColor(index)}`
+                    )}
+                  ></div>
                   <span className="text-sm font-medium truncate flex-1">{project.name}</span>
                   
                   {onDeleteProject && (
@@ -112,6 +123,23 @@ const ProjectsSidebar = ({
                     />
                   ))}
                 </div>
+
+                {/* Material ordering button */}
+                {onToggleMaterialOrdering && (
+                  <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant={isMaterialOrderingActive ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={() => onToggleMaterialOrdering(project)}
+                      className={cn(
+                        "w-full text-xs py-1 h-6 transition-all duration-300",
+                        isMaterialOrderingActive && "animate-pulse"
+                      )}
+                    >
+                      {isMaterialOrderingActive ? "Material ordering: ON" : "Material ordering activated"}
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}
