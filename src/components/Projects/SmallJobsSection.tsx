@@ -77,6 +77,8 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['small_jobs'] });
+      setNewJob({ title: "", order_number: "" });
+      setIsAddingJob(false);
       toast({
         title: "Job added",
         description: `"${data.title}" has been added to small jobs`,
@@ -166,9 +168,6 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
       title: newJob.title,
       order_number: newJob.order_number || undefined
     });
-
-    setNewJob({ title: "", order_number: "" });
-    setIsAddingJob(false);
   };
 
   const handleDeleteJob = (jobId: string) => {
@@ -271,7 +270,7 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 mt-1 cursor-grab active:cursor-grabbing"
-                      title="Drag to confirm"
+                      title="Drag to reorder"
                     >
                       <GripVertical className="h-4 w-4" />
                     </Button>
