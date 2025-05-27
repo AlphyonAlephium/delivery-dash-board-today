@@ -9,13 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface SmallJob {
   id: string;
   title: string;
-  orderNumber?: string;
+  order_number?: string;
   status: "pending" | "in-progress" | "completed";
-  createdAt: Date;
+  created_at: Date;
 }
 
 interface SmallJobsSectionProps {
@@ -23,11 +25,128 @@ interface SmallJobsSectionProps {
 }
 
 const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
-  const [smallJobs, setSmallJobs] = useState<SmallJob[]>([]);
   const [isAddingJob, setIsAddingJob] = useState(false);
   const [newJob, setNewJob] = useState({
     title: "",
-    orderNumber: "",
+    order_number: "",
+  });
+
+  const queryClient = useQueryClient();
+
+  // Fetch small jobs from Supabase
+  const { data: smallJobs = [], isLoading } = useQuery({
+    queryKey: ['small_jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('small_jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching small jobs:", error);
+        toast({
+          title: "Error loading small jobs",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+      
+      return data?.map(job => ({
+        ...job,
+        created_at: new Date(job.created_at)
+      })) || [];
+    }
+  });
+
+  // Create small job mutation
+  const createJobMutation = useMutation({
+    mutationFn: async (jobData: { title: string; order_number?: string }) => {
+      const { data, error } = await supabase
+        .from('small_jobs')
+        .insert([{
+          title: jobData.title,
+          order_number: jobData.order_number || null,
+          status: 'pending'
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['small_jobs'] });
+      toast({
+        title: "Job added",
+        description: `"${data.title}" has been added to small jobs`,
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error creating small job:", error);
+      toast({
+        title: "Error creating job",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update small job mutation
+  const updateJobMutation = useMutation({
+    mutationFn: async ({ jobId, status }: { jobId: string; status: SmallJob["status"] }) => {
+      const { data, error } = await supabase
+        .from('small_jobs')
+        .update({ 
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', jobId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['small_jobs'] });
+    },
+    onError: (error: any) => {
+      console.error("Error updating small job:", error);
+      toast({
+        title: "Error updating job",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete small job mutation
+  const deleteJobMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      const { error } = await supabase
+        .from('small_jobs')
+        .delete()
+        .eq('id', jobId);
+      
+      if (error) throw error;
+      return jobId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['small_jobs'] });
+      toast({
+        title: "Job deleted",
+        description: "The job has been removed",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting small job:", error);
+      toast({
+        title: "Error deleting job",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   });
 
   // Mock order numbers - you can replace this with actual order data
@@ -43,36 +162,21 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
       return;
     }
 
-    const job: SmallJob = {
-      id: Math.random().toString(36).substr(2, 9),
+    createJobMutation.mutate({
       title: newJob.title,
-      orderNumber: newJob.orderNumber || undefined,
-      status: "pending",
-      createdAt: new Date(),
-    };
-
-    setSmallJobs([...smallJobs, job]);
-    setNewJob({ title: "", orderNumber: "" });
-    setIsAddingJob(false);
-
-    toast({
-      title: "Job added",
-      description: `"${job.title}" has been added to small jobs`,
+      order_number: newJob.order_number || undefined
     });
+
+    setNewJob({ title: "", order_number: "" });
+    setIsAddingJob(false);
   };
 
   const handleDeleteJob = (jobId: string) => {
-    setSmallJobs(smallJobs.filter(job => job.id !== jobId));
-    toast({
-      title: "Job deleted",
-      description: "The job has been removed",
-    });
+    deleteJobMutation.mutate(jobId);
   };
 
   const handleStatusChange = (jobId: string, newStatus: SmallJob["status"]) => {
-    setSmallJobs(smallJobs.map(job => 
-      job.id === jobId ? { ...job, status: newStatus } : job
-    ));
+    updateJobMutation.mutate({ jobId, status: newStatus });
   };
 
   const getStatusColor = (status: SmallJob["status"]) => {
@@ -113,8 +217,8 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                 <div>
                   <Label htmlFor="order-number">Order Number (Optional)</Label>
                   <Select 
-                    value={newJob.orderNumber} 
-                    onValueChange={(value) => setNewJob({ ...newJob, orderNumber: value })}
+                    value={newJob.order_number} 
+                    onValueChange={(value) => setNewJob({ ...newJob, order_number: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select order number or leave blank" />
@@ -133,8 +237,11 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                   <Button variant="outline" onClick={() => setIsAddingJob(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleAddJob}>
-                    Add Job
+                  <Button 
+                    onClick={handleAddJob}
+                    disabled={createJobMutation.isPending}
+                  >
+                    {createJobMutation.isPending ? "Adding..." : "Add Job"}
                   </Button>
                 </div>
               </div>
@@ -144,7 +251,11 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {smallJobs.length === 0 ? (
+          {isLoading ? (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              Loading small jobs...
+            </p>
+          ) : smallJobs.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">
               No small jobs yet
             </p>
@@ -166,9 +277,9 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                     </Button>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{job.title}</p>
-                      {job.orderNumber && (
+                      {job.order_number && (
                         <p className="text-xs text-muted-foreground">
-                          Order: {job.orderNumber}
+                          Order: {job.order_number}
                         </p>
                       )}
                       <div className="mt-1">
@@ -177,6 +288,7 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                           onValueChange={(value: SmallJob["status"]) => 
                             handleStatusChange(job.id, value)
                           }
+                          disabled={updateJobMutation.isPending}
                         >
                           <SelectTrigger className="h-6 text-xs">
                             <SelectValue />
@@ -195,6 +307,7 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                     size="icon"
                     className="h-6 w-6"
                     onClick={() => handleDeleteJob(job.id)}
+                    disabled={deleteJobMutation.isPending}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
