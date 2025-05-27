@@ -56,6 +56,56 @@ export type Database = {
           },
         ]
       }
+      deliveries: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          location: string | null
+          project_id: string | null
+          project_name: string
+          projects_involved: string[] | null
+          projects_involved_names: string[] | null
+          time: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          location?: string | null
+          project_id?: string | null
+          project_name: string
+          projects_involved?: string[] | null
+          projects_involved_names?: string[] | null
+          time: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string | null
+          project_id?: string | null
+          project_name?: string
+          projects_involved?: string[] | null
+          projects_involved_names?: string[] | null
+          time?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           client_approved: boolean | null

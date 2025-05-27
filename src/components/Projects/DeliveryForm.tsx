@@ -11,13 +11,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DeliveryFormProps {
   initialData?: {
+    id?: string;
     date: Date;
     time: string;
     type: "delivery" | "pickup";
     projectNumber: string;
     projectName: string;
     location: string;
-    projectsInvolved?: string[]; // New field for multiple projects
+    projectsInvolved?: string[];
+    projectsInvolvedNames?: string[];
   } | null;
   projects: any[];
   onSave: (data: any) => void;
@@ -31,7 +33,7 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
     projectNumber: "",
     projectName: "",
     location: "",
-    projectsInvolved: [] // Default to empty array
+    projectsInvolved: []
   };
 
   const form = useForm({
@@ -66,6 +68,7 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
 
     // Format the data for saving
     const formattedData = {
+      ...(initialData?.id && { id: initialData.id }),
       date: new Date(data.date),
       time: data.time,
       type: data.type,

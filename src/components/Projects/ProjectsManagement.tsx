@@ -6,7 +6,6 @@ import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ProjectForm from "./ProjectForm";
 import DeliveryForm from "./DeliveryForm";
-import { logisticsEvents } from "@/data/sampleData";
 import { toast } from "@/components/ui/use-toast";
 import ProjectsSidebar from "./ProjectsSidebar";
 import ProjectCriteria from "./ProjectCriteria";
@@ -18,11 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const ProjectsManagement = () => {
-  const [deliveries, setDeliveries] = useState(logisticsEvents.map(event => ({
-    ...event,
-    projectsInvolved: [],
-    projectsInvolvedNames: []
-  })));
   const [editingProject, setEditingProject] = useState(null);
   const [editingDelivery, setEditingDelivery] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -50,6 +44,36 @@ const ProjectsManagement = () => {
       }
       
       return data || [];
+    }
+  });
+
+  // Fetch deliveries from Supabase
+  const { data: deliveries = [], isLoading: isLoadingDeliveries } = useQuery({
+    queryKey: ['deliveries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('deliveries')
+        .select('*')
+        .order('date', { ascending: true });
+      
+      if (error) {
+        console.error("Error fetching deliveries:", error);
+        toast({
+          title: "Error loading deliveries",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+      
+      // Transform the data to match the expected format
+      return data?.map(delivery => ({
+        ...delivery,
+        date: new Date(delivery.date),
+        projectNumber: delivery.project_id,
+        projectsInvolved: delivery.projects_involved || [],
+        projectsInvolvedNames: delivery.projects_involved_names || []
+      })) || [];
     }
   });
   
@@ -154,6 +178,123 @@ const ProjectsManagement = () => {
     }
   });
 
+  // Create delivery mutation
+  const createDeliveryMutation = useMutation({
+    mutationFn: async (deliveryData: any) => {
+      const { data, error } = await supabase
+        .from('deliveries')
+        .insert([{
+          date: deliveryData.date,
+          time: deliveryData.time,
+          type: deliveryData.type,
+          project_id: deliveryData.projectNumber,
+          project_name: deliveryData.projectName,
+          location: deliveryData.location,
+          projects_involved: deliveryData.projectsInvolved || [],
+          projects_involved_names: deliveryData.projectsInvolvedNames || []
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['deliveries'] });
+      
+      const additionalProjects = data.projects_involved?.length || 0;
+      const projectDescription = additionalProjects > 0 
+        ? ` and ${additionalProjects} additional project(s)` 
+        : '';
+        
+      toast({
+        title: "Delivery added",
+        description: `New delivery for ${data.project_name}${projectDescription} has been scheduled.`
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error creating delivery:", error);
+      toast({
+        title: "Error creating delivery",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update delivery mutation
+  const updateDeliveryMutation = useMutation({
+    mutationFn: async (deliveryData: any) => {
+      const { data, error } = await supabase
+        .from('deliveries')
+        .update({
+          date: deliveryData.date,
+          time: deliveryData.time,
+          type: deliveryData.type,
+          project_id: deliveryData.projectNumber,
+          project_name: deliveryData.projectName,
+          location: deliveryData.location,
+          projects_involved: deliveryData.projectsInvolved || [],
+          projects_involved_names: deliveryData.projectsInvolvedNames || []
+        })
+        .eq('id', deliveryData.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['deliveries'] });
+      
+      const additionalProjects = data.projects_involved?.length || 0;
+      const projectDescription = additionalProjects > 0 
+        ? ` and ${additionalProjects} additional project(s)` 
+        : '';
+        
+      toast({
+        title: "Delivery updated",
+        description: `Delivery for ${data.project_name}${projectDescription} has been updated.`
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error updating delivery:", error);
+      toast({
+        title: "Error updating delivery",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete delivery mutation
+  const deleteDeliveryMutation = useMutation({
+    mutationFn: async (deliveryId: string) => {
+      const { error } = await supabase
+        .from('deliveries')
+        .delete()
+        .eq('id', deliveryId);
+      
+      if (error) throw error;
+      return deliveryId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deliveries'] });
+      toast({
+        title: "Delivery deleted",
+        description: "The delivery has been successfully deleted."
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting delivery:", error);
+      toast({
+        title: "Error deleting delivery",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleSaveProject = (projectData: any) => {
     if (editingProject) {
       // Update existing project
@@ -174,44 +315,19 @@ const ProjectsManagement = () => {
   const handleSaveDelivery = (deliveryData: any) => {
     if (editingDelivery) {
       // Update existing delivery
-      setDeliveries(deliveries.map((d, index) => 
-        index === deliveries.indexOf(editingDelivery) ? deliveryData : d
-      ));
-      
-      // Show involved projects in toast
-      const additionalProjects = deliveryData.projectsInvolved?.length || 0;
-      const projectDescription = additionalProjects > 0 
-        ? ` and ${additionalProjects} additional project(s)` 
-        : '';
-        
-      toast({
-        title: "Delivery updated",
-        description: `Delivery for ${deliveryData.projectName}${projectDescription} has been updated.`
+      updateDeliveryMutation.mutate({
+        ...deliveryData,
+        id: editingDelivery.id
       });
     } else {
       // Add new delivery
-      setDeliveries([...deliveries, deliveryData]);
-      
-      // Show involved projects in toast
-      const additionalProjects = deliveryData.projectsInvolved?.length || 0;
-      const projectDescription = additionalProjects > 0 
-        ? ` and ${additionalProjects} additional project(s)` 
-        : '';
-        
-      toast({
-        title: "Delivery added",
-        description: `New delivery for ${deliveryData.projectName}${projectDescription} has been scheduled.`
-      });
+      createDeliveryMutation.mutate(deliveryData);
     }
     setEditingDelivery(null);
   };
 
   const handleDeleteDelivery = (delivery: any) => {
-    setDeliveries(deliveries.filter(d => d !== delivery));
-    toast({
-      title: "Delivery deleted",
-      description: `Delivery for ${delivery.projectName} has been removed.`
-    });
+    deleteDeliveryMutation.mutate(delivery.id);
   };
 
   const handleDeleteProject = (project: any) => {
