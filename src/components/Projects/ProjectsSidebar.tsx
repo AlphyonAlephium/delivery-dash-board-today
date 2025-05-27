@@ -81,7 +81,14 @@ const ProjectsSidebar = ({
                         : `bg-gradient-to-r ${getProjectColor(index)}`
                     )}
                   ></div>
-                  <span className="text-sm font-medium truncate flex-1">{project.name}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium truncate block">{project.name}</span>
+                    {project.description && (
+                      <p className="text-xs text-muted-foreground truncate mt-1">
+                        {project.description}
+                      </p>
+                    )}
+                  </div>
                   
                   {onDeleteProject && (
                     <button

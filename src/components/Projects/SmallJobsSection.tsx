@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -173,8 +172,11 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
     deleteJobMutation.mutate(jobId);
   };
 
-  const handleStatusChange = (jobId: string, newStatus: SmallJob["status"]) => {
-    updateJobMutation.mutate({ jobId, status: newStatus });
+  const handleStatusChange = (jobId: string, newStatus: string) => {
+    // Validate the status before casting
+    if (newStatus === "pending" || newStatus === "in-progress" || newStatus === "completed") {
+      updateJobMutation.mutate({ jobId, status: newStatus as SmallJob["status"] });
+    }
   };
 
   const handleMarkAsFinished = (jobId: string) => {
@@ -297,9 +299,7 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                       <div className="mt-1">
                         <Select
                           value={job.status}
-                          onValueChange={(value: SmallJob["status"]) => 
-                            handleStatusChange(job.id, value)
-                          }
+                          onValueChange={(value) => handleStatusChange(job.id, value)}
                           disabled={updateJobMutation.isPending}
                         >
                           <SelectTrigger className="h-6 text-xs">
