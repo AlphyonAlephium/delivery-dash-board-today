@@ -13,6 +13,7 @@ type LogisticsEventProps = {
   projectName: string;
   location?: string;
   time?: string;
+  additionalInfo?: string;
   projectsInvolved?: string[];
   projectsInvolvedNames?: string[];
 };
@@ -24,6 +25,7 @@ const LogisticsEvent = ({
   projectName, 
   location, 
   time,
+  additionalInfo,
   projectsInvolved = [],
   projectsInvolvedNames = []
 }: LogisticsEventProps) => {
@@ -79,6 +81,15 @@ const LogisticsEvent = ({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                </div>
+              )}
+              
+              {/* Display additional info if available */}
+              {additionalInfo && (
+                <div className="mt-2">
+                  <p className="text-xs text-muted-foreground bg-gray-50 p-2 rounded border-l-2 border-gray-200">
+                    {additionalInfo}
+                  </p>
                 </div>
               )}
             </div>

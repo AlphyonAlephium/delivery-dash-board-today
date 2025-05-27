@@ -3,6 +3,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -18,6 +19,7 @@ interface DeliveryFormProps {
     projectNumber: string;
     projectName: string;
     location: string;
+    additionalInfo?: string;
     projectsInvolved?: string[];
     projectsInvolvedNames?: string[];
   } | null;
@@ -33,6 +35,7 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
     projectNumber: "",
     projectName: "",
     location: "",
+    additionalInfo: "",
     projectsInvolved: []
   };
 
@@ -41,7 +44,8 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
       ...defaultValues,
       date: initialData?.date ? initialData.date : new Date(),
       projectId: initialData?.projectNumber || "",
-      projectsInvolved: initialData?.projectsInvolved || []
+      projectsInvolved: initialData?.projectsInvolved || [],
+      additionalInfo: initialData?.additionalInfo || ""
     }
   });
 
@@ -75,6 +79,7 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
       projectNumber: data.projectNumber,
       projectName: data.projectName,
       location: data.location,
+      additionalInfo: data.additionalInfo,
       projectsInvolved: data.projectsInvolved,
       projectsInvolvedNames: involvedProjectNames
     };
@@ -225,6 +230,24 @@ const DeliveryForm = ({ initialData, projects, onSave }: DeliveryFormProps) => {
               <FormLabel>Location</FormLabel>
               <FormControl>
                 <Input placeholder="Enter location address" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="additionalInfo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional Information</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Enter additional details about this pickup/delivery..."
+                  className="min-h-[80px]"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

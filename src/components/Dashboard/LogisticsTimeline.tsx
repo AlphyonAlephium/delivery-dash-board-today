@@ -32,6 +32,7 @@ type LogisticsTimelineProps = {
     projectName: string;
     location?: string;
     time?: string;
+    additionalInfo?: string;
     projectsInvolved?: string[];
     projectsInvolvedNames?: string[];
   }[];
