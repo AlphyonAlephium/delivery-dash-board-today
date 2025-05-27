@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { 
@@ -18,13 +18,15 @@ interface DeliveriesCarouselProps {
   projects: any[];
   onAddDelivery: () => void;
   onEditDelivery: (delivery: any) => void;
+  onDeleteDelivery: (delivery: any) => void;
 }
 
 const DeliveriesCarousel = ({ 
   deliveries, 
   projects, 
   onAddDelivery,
-  onEditDelivery 
+  onEditDelivery,
+  onDeleteDelivery 
 }: DeliveriesCarouselProps) => {
   // Get the next 14 days (2 weeks)
   const getNext14Days = (): Date[] => {
@@ -129,9 +131,22 @@ const DeliveriesCarousel = ({
                           return (
                             <div 
                               key={`${delivery.projectNumber}-${idx}`}
-                              className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                              className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative group"
                               onClick={() => onEditDelivery(delivery)}
                             >
+                              {/* Delete Button */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteDelivery(delivery);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3 text-red-500" />
+                              </Button>
+
                               <div className="flex items-start gap-3">
                                 <div className={cn(
                                   "p-2 rounded-full flex items-center justify-center",
@@ -145,7 +160,7 @@ const DeliveriesCarousel = ({
                                   )}
                                 </div>
                                 
-                                <div className="flex-1">
+                                <div className="flex-1 pr-6">
                                   <div className="flex justify-between">
                                     <Badge variant="outline" className="mb-1 text-xs font-normal">
                                       {delivery.projectNumber}

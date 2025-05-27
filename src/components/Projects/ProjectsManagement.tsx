@@ -206,6 +206,14 @@ const ProjectsManagement = () => {
     setEditingDelivery(null);
   };
 
+  const handleDeleteDelivery = (delivery: any) => {
+    setDeliveries(deliveries.filter(d => d !== delivery));
+    toast({
+      title: "Delivery deleted",
+      description: `Delivery for ${delivery.projectName} has been removed.`
+    });
+  };
+
   const handleDeleteProject = (project: any) => {
     setProjectToDelete(project);
   };
@@ -252,6 +260,7 @@ const ProjectsManagement = () => {
               setEditingDelivery(delivery);
               document.getElementById("add-delivery-dialog-trigger")?.click();
             }}
+            onDeleteDelivery={handleDeleteDelivery}
           />
           
           <Card className="w-full">
