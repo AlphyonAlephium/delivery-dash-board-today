@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -449,7 +450,7 @@ const ProjectsManagement = () => {
                 </Dialog>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-[250px_250px_1fr] gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-[250px_350px_1fr] gap-6">
                 <div className="space-y-6">
                   <ProjectsSidebar 
                     projects={activeProjects} 

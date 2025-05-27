@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, GripVertical, Trash2 } from "lucide-react";
+import { Plus, GripVertical, Trash2, Check } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -178,6 +178,10 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
     updateJobMutation.mutate({ jobId, status: newStatus });
   };
 
+  const handleMarkAsFinished = (jobId: string) => {
+    updateJobMutation.mutate({ jobId, status: "completed" });
+  };
+
   const getStatusColor = (status: SmallJob["status"]) => {
     switch (status) {
       case "pending": return "bg-yellow-100 text-yellow-800";
@@ -301,15 +305,29 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleDeleteJob(job.id)}
-                    disabled={deleteJobMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {job.status !== "completed" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleMarkAsFinished(job.id)}
+                        disabled={updateJobMutation.isPending}
+                        title="Mark as finished"
+                      >
+                        <Check className="h-4 w-4 text-green-600" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleDeleteJob(job.id)}
+                      disabled={deleteJobMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
