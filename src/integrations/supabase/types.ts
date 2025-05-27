@@ -114,6 +114,7 @@ export type Database = {
           design_approved: boolean | null
           documentation_done: boolean | null
           id: string
+          material_ordering_activated: boolean | null
           materials_ordered: boolean | null
           materials_received: boolean | null
           name: string
@@ -129,6 +130,7 @@ export type Database = {
           design_approved?: boolean | null
           documentation_done?: boolean | null
           id?: string
+          material_ordering_activated?: boolean | null
           materials_ordered?: boolean | null
           materials_received?: boolean | null
           name: string
@@ -144,6 +146,7 @@ export type Database = {
           design_approved?: boolean | null
           documentation_done?: boolean | null
           id?: string
+          material_ordering_activated?: boolean | null
           materials_ordered?: boolean | null
           materials_received?: boolean | null
           name?: string

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -295,6 +294,44 @@ const ProjectsManagement = () => {
     }
   });
 
+  // Add material ordering toggle mutation
+  const toggleMaterialOrderingMutation = useMutation({
+    mutationFn: async (project: any) => {
+      const newStatus = !project.material_ordering_activated;
+      const { data, error } = await supabase
+        .from('projects')
+        .update({ material_ordering_activated: newStatus })
+        .eq('id', project.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Update selected project if it's the one being toggled
+      if (selectedProject && selectedProject.id === data.id) {
+        setSelectedProject(data);
+      }
+      
+      const status = data.material_ordering_activated ? "activated" : "deactivated";
+      toast({
+        title: "Material ordering updated",
+        description: `Material ordering has been ${status} for ${data.name}.`
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error toggling material ordering:", error);
+      toast({
+        title: "Error updating material ordering",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleSaveProject = (projectData: any) => {
     if (editingProject) {
       // Update existing project
@@ -341,6 +378,10 @@ const ProjectsManagement = () => {
 
   const handleUpdateProject = (updatedProject: any) => {
     updateProjectMutation.mutate(updatedProject);
+  };
+
+  const handleToggleMaterialOrdering = (project: any) => {
+    toggleMaterialOrderingMutation.mutate(project);
   };
 
   return (
@@ -415,6 +456,7 @@ const ProjectsManagement = () => {
                     activeProject={selectedProject} 
                     onSelectProject={setSelectedProject}
                     onDeleteProject={handleDeleteProject}
+                    onToggleMaterialOrdering={handleToggleMaterialOrdering}
                     isLoading={isLoading}
                   />
                 </div>
