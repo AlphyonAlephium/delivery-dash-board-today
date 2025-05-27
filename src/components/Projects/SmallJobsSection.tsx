@@ -11,6 +11,7 @@ import { Plus, GripVertical, Trash2, Check } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 interface SmallJob {
   id: string;
@@ -94,7 +95,6 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
     }
   });
 
-  // Update small job mutation
   const updateJobMutation = useMutation({
     mutationFn: async ({ jobId, status }: { jobId: string; status: SmallJob["status"] }) => {
       const { data, error } = await supabase
@@ -123,7 +123,6 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
     }
   });
 
-  // Delete small job mutation
   const deleteJobMutation = useMutation({
     mutationFn: async (jobId: string) => {
       const { error } = await supabase
@@ -188,6 +187,13 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
       case "in-progress": return "bg-blue-100 text-blue-800";
       case "completed": return "bg-green-100 text-green-800";
       default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getCardBorderColor = (status: SmallJob["status"]) => {
+    switch (status) {
+      case "completed": return "border-l-green-500";
+      default: return "border-l-red-500";
     }
   };
 
@@ -266,7 +272,10 @@ const SmallJobsSection = ({ projects }: SmallJobsSectionProps) => {
             smallJobs.map((job) => (
               <div
                 key={job.id}
-                className="p-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                className={cn(
+                  "p-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors border-l-4",
+                  getCardBorderColor(job.status)
+                )}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 flex-1">
