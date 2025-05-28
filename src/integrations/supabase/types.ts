@@ -106,6 +106,47 @@ export type Database = {
           },
         ]
       }
+      missing_materials: {
+        Row: {
+          created_at: string
+          id: string
+          material_name: string
+          project_id: string
+          quantity: number
+          steel_grade: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_name: string
+          project_id: string
+          quantity: number
+          steel_grade: string
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_name?: string
+          project_id?: string
+          quantity?: number
+          steel_grade?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missing_materials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           client_approved: boolean | null
