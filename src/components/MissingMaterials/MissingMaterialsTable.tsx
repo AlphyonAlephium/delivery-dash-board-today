@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Edit } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,12 +19,20 @@ interface MissingMaterial {
   unit: 'pieces' | 'meters';
 }
 
+interface ProjectWithMaterials {
+  id: string;
+  name: string;
+  description?: string;
+  materials: MissingMaterial[];
+}
+
 export const MissingMaterialsTable = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [materials, setMaterials] = useState<MissingMaterial[]>([]);
+  const [editingMode, setEditingMode] = useState(false);
 
   // Fetch active projects
   const { data: projects } = useQuery({
@@ -41,7 +49,47 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Fetch missing materials for selected project
+  // Fetch all missing materials grouped by project
+  const { data: projectsWithMaterials = [], isLoading } = useQuery({
+    queryKey: ['missing_materials_overview'],
+    queryFn: async () => {
+      // First get all projects
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('status', 'active')
+        .order('name');
+      
+      if (projectsError) throw projectsError;
+
+      // Then get all missing materials
+      const { data: materialsData, error: materialsError } = await supabase
+        .from('missing_materials')
+        .select('*')
+        .order('created_at');
+      
+      if (materialsError) throw materialsError;
+
+      // Group materials by project
+      const result: ProjectWithMaterials[] = [];
+      
+      projectsData?.forEach(project => {
+        const projectMaterials = materialsData?.filter(m => m.project_id === project.id) || [];
+        if (projectMaterials.length > 0) {
+          result.push({
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            materials: projectMaterials as MissingMaterial[]
+          });
+        }
+      });
+
+      return result;
+    }
+  });
+
+  // Fetch missing materials for selected project (for editing)
   const { data: existingMaterials } = useQuery({
     queryKey: ['missing_materials', selectedProjectId],
     queryFn: async () => {
@@ -91,6 +139,10 @@ export const MissingMaterialsTable = () => {
         description: "Missing materials saved successfully"
       });
       queryClient.invalidateQueries({ queryKey: ['missing_materials'] });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials_overview'] });
+      setEditingMode(false);
+      setSelectedProjectId("");
+      setMaterials([]);
     },
     onError: (error) => {
       toast({
@@ -102,9 +154,9 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Load existing materials when project is selected
+  // Load existing materials when project is selected for editing
   React.useEffect(() => {
-    if (existingMaterials) {
+    if (existingMaterials && editingMode) {
       setMaterials(existingMaterials.map(m => ({
         id: m.id,
         project_id: m.project_id,
@@ -113,10 +165,8 @@ export const MissingMaterialsTable = () => {
         quantity: m.quantity,
         unit: m.unit as 'pieces' | 'meters'
       })));
-    } else {
-      setMaterials([]);
     }
-  }, [existingMaterials]);
+  }, [existingMaterials, editingMode]);
 
   const addNewRow = () => {
     if (!selectedProjectId) {
@@ -154,135 +204,232 @@ export const MissingMaterialsTable = () => {
     saveMaterialsMutation.mutate(validMaterials);
   };
 
+  const startEditing = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setEditingMode(true);
+  };
+
+  const cancelEditing = () => {
+    setEditingMode(false);
+    setSelectedProjectId("");
+    setMaterials([]);
+  };
+
   const selectedProject = projects?.find(p => p.id === selectedProjectId);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center h-40">
+            <p className="text-muted-foreground">Loading missing materials...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Missing Materials</span>
-          <div className="flex gap-2">
-            <Button onClick={addNewRow} size="sm">
+          {!editingMode && (
+            <Button onClick={() => setEditingMode(true)} size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Add Row
+              Add Missing Materials
             </Button>
-            <Button 
-              onClick={handleSave} 
-              size="sm" 
-              variant="outline"
-              disabled={saveMaterialsMutation.isPending || !selectedProjectId}
-            >
-              Save
-            </Button>
-          </div>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <label className="text-sm font-medium mb-2 block">Select Project</label>
-          <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-            <SelectTrigger className="w-80">
-              <SelectValue placeholder="Choose active project..." />
-            </SelectTrigger>
-            <SelectContent>
-              {projects?.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedProject && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {selectedProject.description}
-            </p>
-          )}
-        </div>
-
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-80">Material Name</TableHead>
-                <TableHead className="w-40">Steel Grade</TableHead>
-                <TableHead className="w-32">Quantity</TableHead>
-                <TableHead className="w-32">Unit</TableHead>
-                <TableHead className="w-16">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {materials.map((material, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Input
-                      value={material.material_name}
-                      onChange={(e) => updateMaterial(index, 'material_name', e.target.value)}
-                      placeholder="Enter material name..."
-                      className="border-0 focus-visible:ring-0"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={material.steel_grade}
-                      onChange={(e) => updateMaterial(index, 'steel_grade', e.target.value)}
-                      placeholder="e.g., S355, S275..."
-                      className="border-0 focus-visible:ring-0"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={material.quantity}
-                      onChange={(e) => updateMaterial(index, 'quantity', parseFloat(e.target.value) || 0)}
-                      placeholder="0"
-                      className="border-0 focus-visible:ring-0"
-                      min="0"
-                      step="0.1"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={material.unit}
-                      onValueChange={(value: 'pieces' | 'meters') => updateMaterial(index, 'unit', value)}
-                    >
-                      <SelectTrigger className="border-0 focus-visible:ring-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pieces">Pieces</SelectItem>
-                        <SelectItem value="meters">Meters</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
+        {!editingMode ? (
+          // Overview mode - show all projects with their missing materials
+          <div className="space-y-6">
+            {projectsWithMaterials.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No missing materials recorded yet.</p>
+                <p className="text-sm text-muted-foreground mt-2">Click "Add Missing Materials" to get started.</p>
+              </div>
+            ) : (
+              projectsWithMaterials.map((project) => (
+                <div key={project.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-lg">{project.name}</h3>
+                      {project.description && (
+                        <p className="text-sm text-muted-foreground">{project.description}</p>
+                      )}
+                    </div>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      onClick={() => removeRow(index)}
-                      className="h-8 w-8 p-0 hover:bg-destructive/10"
+                      onClick={() => startEditing(project.id)}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {materials.length === 0 && selectedProjectId && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No missing materials recorded. Click "Add Row" to start tracking.
-                  </TableCell>
-                </TableRow>
-              )}
-              {!selectedProjectId && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    Please select a project to view and manage missing materials.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  </div>
+                  
+                  <div className="border rounded">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Material Name</TableHead>
+                          <TableHead>Steel Grade</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Unit</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {project.materials.map((material, index) => (
+                          <TableRow key={material.id || index}>
+                            <TableCell className="font-medium">{material.material_name}</TableCell>
+                            <TableCell>{material.steel_grade}</TableCell>
+                            <TableCell>{material.quantity}</TableCell>
+                            <TableCell className="capitalize">{material.unit}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          // Editing mode - show the editable table
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Select Project</label>
+                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                  <SelectTrigger className="w-80">
+                    <SelectValue placeholder="Choose active project..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedProject && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedProject.description}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={addNewRow} size="sm" disabled={!selectedProjectId}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Row
+                </Button>
+                <Button 
+                  onClick={handleSave} 
+                  size="sm" 
+                  variant="outline"
+                  disabled={saveMaterialsMutation.isPending || !selectedProjectId}
+                >
+                  Save
+                </Button>
+                <Button 
+                  onClick={cancelEditing} 
+                  size="sm" 
+                  variant="ghost"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-80">Material Name</TableHead>
+                    <TableHead className="w-40">Steel Grade</TableHead>
+                    <TableHead className="w-32">Quantity</TableHead>
+                    <TableHead className="w-32">Unit</TableHead>
+                    <TableHead className="w-16">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {materials.map((material, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          value={material.material_name}
+                          onChange={(e) => updateMaterial(index, 'material_name', e.target.value)}
+                          placeholder="Enter material name..."
+                          className="border-0 focus-visible:ring-0"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={material.steel_grade}
+                          onChange={(e) => updateMaterial(index, 'steel_grade', e.target.value)}
+                          placeholder="e.g., S355, S275..."
+                          className="border-0 focus-visible:ring-0"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={material.quantity}
+                          onChange={(e) => updateMaterial(index, 'quantity', parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="border-0 focus-visible:ring-0"
+                          min="0"
+                          step="0.1"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={material.unit}
+                          onValueChange={(value: 'pieces' | 'meters') => updateMaterial(index, 'unit', value)}
+                        >
+                          <SelectTrigger className="border-0 focus-visible:ring-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pieces">Pieces</SelectItem>
+                            <SelectItem value="meters">Meters</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeRow(index)}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {materials.length === 0 && selectedProjectId && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No missing materials recorded. Click "Add Row" to start tracking.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!selectedProjectId && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Please select a project to view and manage missing materials.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
