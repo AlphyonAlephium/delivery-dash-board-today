@@ -31,6 +31,11 @@ const Header = () => {
                 Missing Materials
               </Link>
             </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link to="/ordered-materials" className={navigationMenuTriggerStyle()}>
+                Ordered Materials
+              </Link>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </div>
