@@ -17,6 +17,7 @@ interface MissingMaterial {
   steel_grade: string;
   quantity: number;
   unit: 'pieces' | 'meters';
+  status?: string;
 }
 
 interface ProjectWithMaterials {
@@ -49,7 +50,7 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Fetch all missing materials grouped by project
+  // Fetch all missing materials grouped by project (only status = 'missing')
   const { data: projectsWithMaterials = [], isLoading } = useQuery({
     queryKey: ['missing_materials_overview'],
     queryFn: async () => {
@@ -62,10 +63,11 @@ export const MissingMaterialsTable = () => {
       
       if (projectsError) throw projectsError;
 
-      // Then get all missing materials
+      // Then get all missing materials with status 'missing'
       const { data: materialsData, error: materialsError } = await supabase
         .from('missing_materials')
         .select('*')
+        .eq('status', 'missing')
         .order('created_at');
       
       if (materialsError) throw materialsError;
@@ -89,7 +91,7 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Fetch missing materials for selected project (for editing)
+  // Fetch missing materials for selected project (for editing) - only status = 'missing'
   const { data: existingMaterials } = useQuery({
     queryKey: ['missing_materials', selectedProjectId],
     queryFn: async () => {
@@ -99,6 +101,7 @@ export const MissingMaterialsTable = () => {
         .from('missing_materials')
         .select('*')
         .eq('project_id', selectedProjectId)
+        .eq('status', 'missing')
         .order('created_at');
       
       if (error) throw error;
@@ -112,13 +115,14 @@ export const MissingMaterialsTable = () => {
     mutationFn: async (materials: MissingMaterial[]) => {
       if (!selectedProjectId) throw new Error('No project selected');
       
-      // Delete existing materials for this project
+      // Delete existing materials for this project with status 'missing'
       await supabase
         .from('missing_materials')
         .delete()
-        .eq('project_id', selectedProjectId);
+        .eq('project_id', selectedProjectId)
+        .eq('status', 'missing');
       
-      // Insert new materials
+      // Insert new materials with status 'missing'
       if (materials.length > 0) {
         const { error } = await supabase
           .from('missing_materials')
@@ -127,7 +131,8 @@ export const MissingMaterialsTable = () => {
             material_name: m.material_name,
             steel_grade: m.steel_grade,
             quantity: m.quantity,
-            unit: m.unit
+            unit: m.unit,
+            status: 'missing'
           })));
         
         if (error) throw error;
@@ -154,6 +159,34 @@ export const MissingMaterialsTable = () => {
     }
   });
 
+  // Mark material as ordered mutation
+  const markAsOrderedMutation = useMutation({
+    mutationFn: async (materialId: string) => {
+      const { error } = await supabase
+        .from('missing_materials')
+        .update({ status: 'ordered' })
+        .eq('id', materialId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Material marked as ordered"
+      });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials'] });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials_overview'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to mark material as ordered",
+        variant: "destructive"
+      });
+      console.error('Error marking material as ordered:', error);
+    }
+  });
+
   // Load existing materials when project is selected for editing
   React.useEffect(() => {
     if (existingMaterials && editingMode) {
@@ -163,7 +196,8 @@ export const MissingMaterialsTable = () => {
         material_name: m.material_name,
         steel_grade: m.steel_grade,
         quantity: m.quantity,
-        unit: m.unit as 'pieces' | 'meters'
+        unit: m.unit as 'pieces' | 'meters',
+        status: m.status
       })));
     }
   }, [existingMaterials, editingMode]);
@@ -213,6 +247,10 @@ export const MissingMaterialsTable = () => {
     setEditingMode(false);
     setSelectedProjectId("");
     setMaterials([]);
+  };
+
+  const handleMarkAsOrdered = (materialId: string) => {
+    markAsOrderedMutation.mutate(materialId);
   };
 
   const selectedProject = projects?.find(p => p.id === selectedProjectId);
@@ -279,6 +317,7 @@ export const MissingMaterialsTable = () => {
                           <TableHead>Steel Grade</TableHead>
                           <TableHead>Quantity</TableHead>
                           <TableHead>Unit</TableHead>
+                          <TableHead className="w-32">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -288,6 +327,16 @@ export const MissingMaterialsTable = () => {
                             <TableCell>{material.steel_grade}</TableCell>
                             <TableCell>{material.quantity}</TableCell>
                             <TableCell className="capitalize">{material.unit}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleMarkAsOrdered(material.id!)}
+                                disabled={markAsOrderedMutation.isPending}
+                              >
+                                Mark as Ordered
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

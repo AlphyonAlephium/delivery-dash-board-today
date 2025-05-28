@@ -113,6 +113,7 @@ export type Database = {
           material_name: string
           project_id: string
           quantity: number
+          status: string
           steel_grade: string
           unit: string
           updated_at: string
@@ -123,6 +124,7 @@ export type Database = {
           material_name: string
           project_id: string
           quantity: number
+          status?: string
           steel_grade: string
           unit: string
           updated_at?: string
@@ -133,6 +135,7 @@ export type Database = {
           material_name?: string
           project_id?: string
           quantity?: number
+          status?: string
           steel_grade?: string
           unit?: string
           updated_at?: string
