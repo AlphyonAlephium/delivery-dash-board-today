@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -192,7 +191,7 @@ export const MissingMaterialsTable = () => {
     mutationFn: async (materialId: string) => {
       const { error } = await supabase
         .from('missing_materials')
-        .update({ status: 'price_offering' })
+        .update({ status: 'quoted' })
         .eq('id', materialId);
       
       if (error) throw error;
