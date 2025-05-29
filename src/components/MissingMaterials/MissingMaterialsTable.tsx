@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,14 @@ interface ProjectWithMaterials {
   name: string;
   description?: string;
   materials: MissingMaterial[];
+  // Add criteria fields
+  documentation_done?: boolean;
+  materials_ordered?: boolean;
+  materials_received?: boolean;
+  design_approved?: boolean;
+  quality_checked?: boolean;
+  client_approved?: boolean;
+  progress?: number;
 }
 
 export const MissingMaterialsTable = () => {
@@ -49,11 +58,11 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Fetch all missing materials grouped by project (only status = 'missing')
+  // Fetch all missing materials grouped by project (only status = 'missing') with project criteria
   const { data: projectsWithMaterials = [], isLoading } = useQuery({
     queryKey: ['missing_materials_overview'],
     queryFn: async () => {
-      // First get all projects
+      // First get all projects with their criteria
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
         .select('*')
@@ -71,7 +80,7 @@ export const MissingMaterialsTable = () => {
       
       if (materialsError) throw materialsError;
 
-      // Group materials by project
+      // Group materials by project and include project criteria
       const result: ProjectWithMaterials[] = [];
       
       projectsData?.forEach(project => {
@@ -81,7 +90,14 @@ export const MissingMaterialsTable = () => {
             id: project.id,
             name: project.name,
             description: project.description,
-            materials: projectMaterials as MissingMaterial[]
+            materials: projectMaterials as MissingMaterial[],
+            documentation_done: project.documentation_done,
+            materials_ordered: project.materials_ordered,
+            materials_received: project.materials_received,
+            design_approved: project.design_approved,
+            quality_checked: project.quality_checked,
+            client_approved: project.client_approved,
+            progress: project.progress
           });
         }
       });
@@ -158,7 +174,6 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Mark material as ordered mutation
   const markAsOrderedMutation = useMutation({
     mutationFn: async (materialId: string) => {
       const { error } = await supabase
@@ -186,11 +201,24 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Export to Excel function
+  // Export to Excel function with criteria columns
   const exportToExcel = () => {
-    // Create CSV data with separate columns for pieces and meters
+    // Create CSV data with separate columns for pieces, meters, and each criteria
     const csvData = [];
-    csvData.push(['Project Name', 'Material Name', 'Steel Grade', 'Quantity (Pieces)', 'Quantity (Meters)']);
+    csvData.push([
+      'Project Name', 
+      'Material Name', 
+      'Steel Grade', 
+      'Quantity (Pieces)', 
+      'Quantity (Meters)',
+      'R1 izveidots',
+      'Materials Ordered',
+      'Materials Received',
+      'Design Approved',
+      'Quality Checked',
+      'Client Approved',
+      'Progress (%)'
+    ]);
     
     projectsWithMaterials.forEach(project => {
       project.materials.forEach(material => {
@@ -199,7 +227,14 @@ export const MissingMaterialsTable = () => {
           material.material_name,
           material.steel_grade,
           material.unit === 'pieces' ? material.quantity.toString() : '',
-          material.unit === 'meters' ? material.quantity.toString() : ''
+          material.unit === 'meters' ? material.quantity.toString() : '',
+          project.documentation_done ? 'Yes' : 'No',
+          project.materials_ordered ? 'Yes' : 'No',
+          project.materials_received ? 'Yes' : 'No',
+          project.design_approved ? 'Yes' : 'No',
+          project.quality_checked ? 'Yes' : 'No',
+          project.client_approved ? 'Yes' : 'No',
+          project.progress?.toString() || '0'
         ]);
       });
     });
