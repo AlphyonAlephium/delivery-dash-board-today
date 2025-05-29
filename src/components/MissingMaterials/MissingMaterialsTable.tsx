@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Edit, FileExcel } from "lucide-react";
+import { Plus, Trash2, Edit, Download } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -314,7 +315,7 @@ export const MissingMaterialsTable = () => {
           <div className="flex gap-2">
             {!editingMode && projectsWithMaterials.length > 0 && (
               <Button onClick={exportToExcel} size="sm" variant="outline">
-                <FileExcel className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 mr-2" />
                 Export to Excel
               </Button>
             )}
