@@ -265,7 +265,7 @@ export const MissingMaterialsTable = () => {
         quantity: m.quantity,
         unit: m.unit as 'pieces' | 'meters',
         status: m.status
-      }));
+      })));
     }
   }, [existingMaterials, editingMode]);
 
