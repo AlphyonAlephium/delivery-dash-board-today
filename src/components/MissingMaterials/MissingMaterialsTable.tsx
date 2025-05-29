@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, FileExcel } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -187,6 +186,46 @@ export const MissingMaterialsTable = () => {
     }
   });
 
+  // Export to Excel function
+  const exportToExcel = () => {
+    // Create CSV data
+    const csvData = [];
+    csvData.push(['Project Name', 'Material Name', 'Steel Grade', 'Quantity', 'Unit']);
+    
+    projectsWithMaterials.forEach(project => {
+      project.materials.forEach(material => {
+        csvData.push([
+          project.name,
+          material.material_name,
+          material.steel_grade,
+          material.quantity.toString(),
+          material.unit
+        ]);
+      });
+    });
+
+    // Convert to CSV string
+    const csvContent = csvData.map(row => 
+      row.map(cell => `"${cell}"`).join(',')
+    ).join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `missing_materials_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Success",
+      description: "Missing materials exported successfully"
+    });
+  };
+
   // Load existing materials when project is selected for editing
   React.useEffect(() => {
     if (existingMaterials && editingMode) {
@@ -272,12 +311,20 @@ export const MissingMaterialsTable = () => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Missing Materials</span>
-          {!editingMode && (
-            <Button onClick={() => setEditingMode(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Missing Materials
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {!editingMode && projectsWithMaterials.length > 0 && (
+              <Button onClick={exportToExcel} size="sm" variant="outline">
+                <FileExcel className="h-4 w-4 mr-2" />
+                Export to Excel
+              </Button>
+            )}
+            {!editingMode && (
+              <Button onClick={() => setEditingMode(true)} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Missing Materials
+              </Button>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
