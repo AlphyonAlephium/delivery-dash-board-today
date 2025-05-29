@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Edit, Download } from "lucide-react";
+import { Plus, Trash2, Edit, Download, Check } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -186,6 +187,34 @@ export const MissingMaterialsTable = () => {
     }
   });
 
+  // Mark material as sent for price offering mutation
+  const markAsPriceOfferingMutation = useMutation({
+    mutationFn: async (materialId: string) => {
+      const { error } = await supabase
+        .from('missing_materials')
+        .update({ status: 'price_offering' })
+        .eq('id', materialId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Material marked as sent for price offering"
+      });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials'] });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials_overview'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to mark material as sent for price offering",
+        variant: "destructive"
+      });
+      console.error('Error marking material as sent for price offering:', error);
+    }
+  });
+
   // Delete material mutation
   const deleteMaterialMutation = useMutation({
     mutationFn: async (materialId: string) => {
@@ -320,6 +349,10 @@ export const MissingMaterialsTable = () => {
     markAsOrderedMutation.mutate(materialId);
   };
 
+  const handleMarkAsPriceOffering = (materialId: string) => {
+    markAsPriceOfferingMutation.mutate(materialId);
+  };
+
   const handleDeleteMaterial = (materialId: string) => {
     deleteMaterialMutation.mutate(materialId);
   };
@@ -396,7 +429,7 @@ export const MissingMaterialsTable = () => {
                           <TableHead>Steel Grade</TableHead>
                           <TableHead>Quantity</TableHead>
                           <TableHead>Unit</TableHead>
-                          <TableHead className="w-48">Actions</TableHead>
+                          <TableHead className="w-64">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -408,6 +441,16 @@ export const MissingMaterialsTable = () => {
                             <TableCell className="capitalize">{material.unit}</TableCell>
                             <TableCell>
                               <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleMarkAsPriceOffering(material.id!)}
+                                  disabled={markAsPriceOfferingMutation.isPending}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Price Offering
+                                </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
