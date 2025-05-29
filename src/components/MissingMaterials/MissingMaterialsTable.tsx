@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -187,6 +186,34 @@ export const MissingMaterialsTable = () => {
     }
   });
 
+  // Delete material mutation
+  const deleteMaterialMutation = useMutation({
+    mutationFn: async (materialId: string) => {
+      const { error } = await supabase
+        .from('missing_materials')
+        .delete()
+        .eq('id', materialId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Material deleted successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials'] });
+      queryClient.invalidateQueries({ queryKey: ['missing_materials_overview'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete material",
+        variant: "destructive"
+      });
+      console.error('Error deleting material:', error);
+    }
+  });
+
   // Export to Excel function
   const exportToExcel = () => {
     // Create CSV data
@@ -238,7 +265,7 @@ export const MissingMaterialsTable = () => {
         quantity: m.quantity,
         unit: m.unit as 'pieces' | 'meters',
         status: m.status
-      })));
+      }));
     }
   }, [existingMaterials, editingMode]);
 
@@ -291,6 +318,10 @@ export const MissingMaterialsTable = () => {
 
   const handleMarkAsOrdered = (materialId: string) => {
     markAsOrderedMutation.mutate(materialId);
+  };
+
+  const handleDeleteMaterial = (materialId: string) => {
+    deleteMaterialMutation.mutate(materialId);
   };
 
   const selectedProject = projects?.find(p => p.id === selectedProjectId);
@@ -365,7 +396,7 @@ export const MissingMaterialsTable = () => {
                           <TableHead>Steel Grade</TableHead>
                           <TableHead>Quantity</TableHead>
                           <TableHead>Unit</TableHead>
-                          <TableHead className="w-32">Action</TableHead>
+                          <TableHead className="w-48">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -376,14 +407,25 @@ export const MissingMaterialsTable = () => {
                             <TableCell>{material.quantity}</TableCell>
                             <TableCell className="capitalize">{material.unit}</TableCell>
                             <TableCell>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleMarkAsOrdered(material.id!)}
-                                disabled={markAsOrderedMutation.isPending}
-                              >
-                                Mark as Ordered
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleMarkAsOrdered(material.id!)}
+                                  disabled={markAsOrderedMutation.isPending}
+                                >
+                                  Mark as Ordered
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteMaterial(material.id!)}
+                                  disabled={deleteMaterialMutation.isPending}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
