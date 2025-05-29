@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -189,9 +188,9 @@ export const MissingMaterialsTable = () => {
 
   // Export to Excel function
   const exportToExcel = () => {
-    // Create CSV data
+    // Create CSV data with separate columns for pieces and meters
     const csvData = [];
-    csvData.push(['Project Name', 'Material Name', 'Steel Grade', 'Quantity', 'Unit']);
+    csvData.push(['Project Name', 'Material Name', 'Steel Grade', 'Quantity (Pieces)', 'Quantity (Meters)']);
     
     projectsWithMaterials.forEach(project => {
       project.materials.forEach(material => {
@@ -199,8 +198,8 @@ export const MissingMaterialsTable = () => {
           project.name,
           material.material_name,
           material.steel_grade,
-          material.quantity.toString(),
-          material.unit
+          material.unit === 'pieces' ? material.quantity.toString() : '',
+          material.unit === 'meters' ? material.quantity.toString() : ''
         ]);
       });
     });
