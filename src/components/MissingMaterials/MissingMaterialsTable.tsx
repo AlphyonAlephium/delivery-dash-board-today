@@ -49,7 +49,7 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Fetch all missing materials grouped by project (only status = 'missing')
+  // Fetch all missing materials grouped by project (status = 'missing' OR 'quoted')
   const { data: projectsWithMaterials = [], isLoading } = useQuery({
     queryKey: ['missing_materials_overview'],
     queryFn: async () => {
@@ -62,11 +62,11 @@ export const MissingMaterialsTable = () => {
       
       if (projectsError) throw projectsError;
 
-      // Then get all missing materials with status 'missing'
+      // Then get all missing materials with status 'missing' OR 'quoted'
       const { data: materialsData, error: materialsError } = await supabase
         .from('missing_materials')
         .select('*')
-        .eq('status', 'missing')
+        .in('status', ['missing', 'quoted'])
         .order('created_at');
       
       if (materialsError) throw materialsError;
@@ -90,7 +90,7 @@ export const MissingMaterialsTable = () => {
     }
   });
 
-  // Fetch missing materials for selected project (for editing) - only status = 'missing'
+  // Fetch missing materials for selected project (for editing) - status = 'missing' OR 'quoted'
   const { data: existingMaterials } = useQuery({
     queryKey: ['missing_materials', selectedProjectId],
     queryFn: async () => {
@@ -100,7 +100,7 @@ export const MissingMaterialsTable = () => {
         .from('missing_materials')
         .select('*')
         .eq('project_id', selectedProjectId)
-        .eq('status', 'missing')
+        .in('status', ['missing', 'quoted'])
         .order('created_at');
       
       if (error) throw error;
@@ -428,28 +428,47 @@ export const MissingMaterialsTable = () => {
                           <TableHead>Steel Grade</TableHead>
                           <TableHead>Quantity</TableHead>
                           <TableHead>Unit</TableHead>
+                          <TableHead>Status</TableHead>
                           <TableHead className="w-64">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {project.materials.map((material, index) => (
-                          <TableRow key={material.id || index}>
-                            <TableCell className="font-medium">{material.material_name}</TableCell>
+                          <TableRow key={material.id || index} className={material.status === 'quoted' ? 'bg-green-50' : ''}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {material.status === 'quoted' && (
+                                  <Check className="h-4 w-4 text-green-600" />
+                                )}
+                                {material.material_name}
+                              </div>
+                            </TableCell>
                             <TableCell>{material.steel_grade}</TableCell>
                             <TableCell>{material.quantity}</TableCell>
                             <TableCell className="capitalize">{material.unit}</TableCell>
                             <TableCell>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                material.status === 'quoted' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {material.status === 'quoted' ? 'Price Offering Sent' : 'Missing'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleMarkAsPriceOffering(material.id!)}
-                                  disabled={markAsPriceOfferingMutation.isPending}
-                                  className="text-green-600 hover:text-green-700"
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Price Offering
-                                </Button>
+                                {material.status === 'missing' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleMarkAsPriceOffering(material.id!)}
+                                    disabled={markAsPriceOfferingMutation.isPending}
+                                    className="text-green-600 hover:text-green-700"
+                                  >
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Price Offering
+                                  </Button>
+                                )}
                                 <Button
                                   variant="outline"
                                   size="sm"
